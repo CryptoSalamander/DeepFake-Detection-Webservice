@@ -1,0 +1,14 @@
+{
+    "SECRET_KEY": "21bfd9e51ff7d2385b88973944a6425b",
+    "Package": {
+        "pretrained dir": "./api/weights",
+        "model name": [ "resnest269rec" ],
+        "download url": {
+            "resnest269rec": "https://github.com/CryptoSalamander/DeepFake-Detection/releases/download/torchmodel/resnest269rec"
+        }
+    },
+    "triton" : {
+        "resnest": "",
+        "b7":      ""
+    }
+}

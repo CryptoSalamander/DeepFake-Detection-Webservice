@@ -1,0 +1,236 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<style type="text/css">
+
+@media (max-height: 800px) {
+    footer {
+        position: relative;
+        height: 40px;
+    }
+}
+
+#content{
+    max-width: 600px;
+    height: auto;
+    margin: 0 auto;
+    text-align: center;
+}
+
+#content::before{
+    display: inline-block;
+    content: '';
+    height: 100%;
+    vertical-align: middle;
+}
+
+.wrap-all{
+    min-height: 681px;
+}
+
+.wrap-top{
+    font-size : 50px;
+}
+
+.drop-zone{
+    max-width: 600px;
+    height: 400px;
+    padding: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 500;
+    font-size: 20px;
+    cursor: pointer;
+    color: #cccccc;
+    border: 4px dashed #009578;
+    border-radius: 10px;
+}
+
+.drop-zone--over {
+    border-style: solid;
+}
+
+.drop-zone__input{
+    display: none;
+}
+
+.drop-zone__thumb {
+    width: 60%;
+    height: 80%;
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #cccccc;
+    background-size: cover;
+    position: relative;
+}
+
+.drop-zone__thumb::after {
+    content: attr(data-label);
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 5px 0;
+    color: #ffffff;
+    background: rgba(0, 0, 0, 0.75);
+    font-size: 14px;
+    text-align: center;
+}
+
+.file-size{
+    display: none;
+}
+
+.filebox label {
+  display: inline-block;
+  padding: .5em .75em;
+  color: #fff;
+  font-size: inherit;
+  line-height: normal;
+  vertical-align: middle;
+  background-color: #5cb85c;
+  cursor: pointer;
+  border: 1px solid #4cae4c;
+  border-radius: .25em;
+  -webkit-transition: background-color 0.2s;
+  transition: background-color 0.2s;
+}
+
+.filebox label:hover {
+  background-color: #6ed36e;
+}
+
+.filebox label:active {
+  background-color: #367c36;
+}
+
+.filebox input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+</style>
+
+<div id="content">
+    <div class="wrap-all">
+        <div class="wrap-top">
+            <p>딥페이크 영상 판별</p> 
+        </div>
+        <form action="" method="POST" id="video-form" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            <!--<div class="drop-zone">
+                <span class="drop-zone__prompt">Drop file here or click to upload</span> 
+                <input type="file" accept="video/*" name="videofile" class="drop-zone__input" id="video-file"/>
+            </div>-->
+            <!--        <fieldset class="do-group">-->
+            <div class="drop-zone">
+                <span class="drop-zone__prompt">Drop file here or click to upload</span> 
+                {{ form.video_content(class="drop-zone__input") }}
+            </div>
+            <p class="file-size">영상 파일 용량 : </p>
+            <div class="tmp" style="height: 2%; display: block"> &nbsp; </div>
+            <div class="filebox">
+                <label for="ex_file">업로드</label>
+                <button id="ex_file" style="display: none;"></button>
+            </div>
+                <!--</fieldset> -->
+            <!--<p class="file-size">영상 파일 용량 : </p>-->
+            <!--<input type="submit" value="Submit" />-->
+        </form>
+    </div>
+</div>
+
+
+<script>
+document.querySelectorAll(".drop-zone__input").forEach(inputElement => {
+    const dropZoneElement = inputElement.closest(".drop-zone");
+
+    dropZoneElement.addEventListener("click", e => {
+        inputElement.click();
+    });
+
+    inputElement.addEventListener("change", e => {
+        if (inputElement.files.length) {
+            updateThumbnail(dropZoneElement, inputElement.files[0]);
+        }
+    });
+
+    dropZoneElement.addEventListener("dragover", e => {
+        e.preventDefault();
+        dropZoneElement.classList.add("drop-zone--over");
+    });
+
+    ["dragleave", "dragend"].forEach(type => {
+        dropZoneElement.addEventListener(type, e => {
+            dropZoneElement.classList.remove("drop-zone--over");
+        });
+    });
+
+    dropZoneElement.addEventListener('drop', e => {
+        e.preventDefault();
+
+        console.log(e.dataTransfer.files);
+        if (e.dataTransfer.files.length) {
+            console.log(e.dataTransfer.files);
+            inputElement.files = e.dataTransfer.files;
+            inputElement.files = this.files;
+            updateThumbnail(dropZoneElement, e.dataTransfer.files[0]);
+        }
+
+        dropZoneElement.classList.remove('drop-zone--over'); 
+    });
+});
+
+function updateThumbnail(dropZoneElement, file){
+    let thumbnailElement = dropZoneElement.querySelector('.drop-zone__thumb');
+
+    if (dropZoneElement.querySelector('.drop-zone__prompt')) {
+        dropZoneElement.querySelector('.drop-zone__prompt').remove();
+    }
+    
+    if (!thumbnailElement){
+        thumbnailElement = document.createElement('div');
+        thumbnailElement.classList.add('drop-zone__thumb');
+        dropZoneElement.appendChild(thumbnailElement);
+    }
+
+    thumbnailElement.dataset.label = file.name;
+
+    if (file.type.startsWith('video/')) {
+        thumbnailElement.style.backgroundImage = `url( {{ url_for('static', filename="img/video_icon.png") }} )`;
+        thumbnailElement.style.backgroundSize  = "100%";
+
+        let fileSize = file.size;
+        const Str = [ "B", "KB", "MB", "GB" ];
+        var c = 0;
+        for ( ; fileSize > 1000; fileSize = fileSize / 1000., c += 1);
+        document.querySelector('.file-size').innerHTML += fileSize.toFixed(1) + Str[c];
+        document.querySelector('.file-size').style.display = 'block';
+    }
+}
+
+/*
+var form = document.getElementById('video-form');
+form.addEventListener('submit', e => {
+    var video_files = document.getElementById('video-file');
+    e.preventDefault();
+    var formData = new FormData();
+    var request = new XMLHttpRequest();
+    formData.append("files[]", video_files);
+    request.open('POST', "/home");
+    request.send(formData);
+});
+*/
+</script>
+
+{% endblock %}

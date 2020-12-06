@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+ 
+{% block content %}
+    {% if deepfake %}
+    <div id="wrapper">
+        <div id="slider-wrap">
+            <img src="">
+            <p id="numberCAM"></p>
+        </div>
+        <!--
+        <div class="middle">
+            <div class="result-nav">
+                <a href="{{ url_for('home') }}">
+                    다시 해보기
+                </a>
+            </div>
+        </div>
+        -->
+    </div>
+    <style>
+        #wrapper{
+            width: auto;
+            height: 416px;
+            position:relative;
+        }
+        
+        #slider-wrap{
+            height: 416px;
+            width: 416px;
+            position:relative;
+            margin: 0 auto
+        }
+        
+        #slider-wrap > p{
+            position:relative;
+            text-align: center;
+        }
+        
+        .middle {
+
+        }
+
+        .result-nav {
+            width: auto;
+            height: 100px;
+        }
+        
+        .result-nav > a{
+            width: 
+        }
+    </style>
+    <script  type="text/javascript">
+        var timeInterval = 1000;
+        var index = 0;
+        var Path = [];
+        {% for img in images %}
+            Path.push("{{ url_for('static', filename='deepfake/' + id + '/' + img) }}")
+        {% endfor %}
+        document.getElementById('slider-wrap').firstElementChild.setAttribute("src", Path[index]);
+        document.getElementById('numberCAM').innerHTML = `< ${index + 1} / ${Path.length} >`
+        index = (index + 1) % Path.length;
+        var autoSlider = setInverval(Right, timeInterval);
+        function Right(){
+            document.getElementById('slider-wrap').firstElementChild.setAttribute("src", Path[index]);
+            document.getElementById('numberCAM').innerHTML = `< ${index + 1} / ${Path.length} >`
+            index = (index + 1) % Path.length;
+            timeInterval = 1500;
+        }
+    </script>
+    {% endif %}
+{% endblock content %}
+
